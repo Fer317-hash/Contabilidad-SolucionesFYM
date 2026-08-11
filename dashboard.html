@@ -48,31 +48,68 @@
          MAIN UNIFIED DASHBOARD SYSTEM SCREEN
          ============================================================================= -->
     <div id="dashboard-screen">
-        <div class="container">
-            <!-- Dashboard Header -->
-            <header>
-                <div class="logo-section">
-                    <h1>SOLUCIONES <span>F&M</span></h1>
-                    <p>Panel General de Inventario Alimentario, Caja y Deudas</p>
+        <div class="dashboard-wrapper">
+            
+            <!-- Left Sidebar Navigation -->
+            <aside class="sidebar-menu">
+                <div class="sidebar-brand">
+                    <h2>SOLUCIONES <span>F&M</span></h2>
+                    <p>Equipos Alimentarios</p>
                 </div>
-                <div class="header-right">
-                    <div class="system-status" id="db-status-badge">
-                        Base de Datos: Conectada
-                    </div>
-                    <button class="btn btn-primary" id="export-summary-pdf-btn" style="padding: 6px 12px; font-size: 0.78rem; margin-right: 6px; background: #0f172a; border-color: #0f172a;">
-                        📄 PDF General
+                
+                <nav class="sidebar-links">
+                    <button class="nav-item" onclick="toggleExpandBlock('block-inventory')" title="Ver Catálogo de Inventario">
+                        <span class="nav-icon">📦</span>
+                        <span class="nav-text">Bloque A - Inventario</span>
                     </button>
-                    <button class="btn btn-secondary" id="sync-btn" style="padding: 6px 12px; font-size: 0.78rem; margin-right: 6px; display: none;">
-                        🔄 Sincronizar
+                    
+                    <button class="nav-item" onclick="toggleExpandBlock('block-ledger-entry')" title="Ver Registro Diario de Caja">
+                        <span class="nav-icon">💵</span>
+                        <span class="nav-text">Bloque B - Caja</span>
                     </button>
-                    <button class="btn btn-secondary" id="logout-btn" style="padding: 6px 12px; font-size: 0.78rem;">
-                        Cerrar Sesión
+                    
+                    <button class="nav-item" onclick="toggleExpandBlock('block-debts')" title="Ver Seguimiento de Deudas">
+                        <span class="nav-icon">⚖️</span>
+                        <span class="nav-text">Bloque C - Deudas</span>
                     </button>
-                </div>
-            </header>
+                    
+                    <button class="nav-item" onclick="toggleExpandBlock('block-reports')" title="Ver Reportes y Gráficos">
+                        <span class="nav-icon">📊</span>
+                        <span class="nav-text">Bloque D - Reportes</span>
+                    </button>
+                </nav>
 
-            <!-- Main Unified Grid Layout (Two Columns) -->
-            <div class="dashboard-layout">
+                <div class="sidebar-status-wrap">
+                    <!-- Status Badge placeholder, will be updated by JS -->
+                    <div class="system-status" id="db-status-badge" style="width: 100%; text-align: center; font-size: 0.72rem; padding: 8px;">
+                        Base de Datos: Conectando...
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content Container -->
+            <div class="main-content-pane">
+                <!-- Dashboard Header -->
+                <header style="margin-bottom: 24px;">
+                    <div class="logo-section">
+                        <h1>Panel General de Control</h1>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary);">Inventario, Flujos Financieros y Cuentas por Pagar</p>
+                    </div>
+                    <div class="header-right" style="display: flex; align-items: center; gap: 8px;">
+                        <button class="btn btn-primary" id="export-summary-pdf-btn" style="padding: 6px 12px; font-size: 0.78rem; background: #0f172a; border-color: #0f172a;">
+                            📄 PDF General
+                        </button>
+                        <button class="btn btn-secondary" id="sync-btn" style="padding: 6px 12px; font-size: 0.78rem; display: none;">
+                            🔄 Sincronizar
+                        </button>
+                        <button class="btn btn-secondary" id="logout-btn" style="padding: 6px 12px; font-size: 0.78rem;">
+                            Cerrar Sesión
+                        </button>
+                    </div>
+                </header>
+
+                <!-- Main Unified Grid Layout (Two Columns) -->
+                <div class="dashboard-layout">
                 
                 <!-- COLUMNA IZQUIERDA: Bloque A (Inventarios) y Bloque C (Deudas) -->
                 <div class="layout-column">
@@ -532,8 +569,9 @@
                     </section>
                 </div>
             </div>
-        </div>
-    </div>
+            </div> <!-- closes main-content-pane -->
+        </div> <!-- closes dashboard-wrapper -->
+    </div> <!-- closes dashboard-screen -->
 
     <!-- Product Entry/Edit Modal overlay (Lima & Arequipa Stock) -->
     <div class="modal-overlay" id="product-modal">
