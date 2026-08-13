@@ -97,6 +97,9 @@ let deductions = [];
 let currentChartType = "Egreso";
 let categoryChartInstance = null;
 let activeInventoryTab = "total";
+let eventSource = null;
+let deferredPrompt = null;
+const installAppBtn = document.getElementById("install-app-btn");
 
 // --- DOM ELEMENTS ---
 const toastContainer = document.getElementById("toast-container");
@@ -229,6 +232,11 @@ function handleLoginSubmit(e) {
 
 function handleLogout() {
     if (confirm("¿Estás seguro de que deseas cerrar la sesión?")) {
+        if (eventSource) {
+            eventSource.close();
+            eventSource = null;
+            console.log("Sincronización en tiempo real cerrada al cerrar sesión.");
+        }
         sessionStorage.removeItem("soluciones_logged_in");
         showLogin();
         loginUsernameInput.value = "";
@@ -366,11 +374,110 @@ function saveLocalStorage() {
     localStorage.setItem("inventory_deductions", JSON.stringify(deductions));
 }
 
+// --- REALTIME SYNC & PWA INSTALLATION CONTROLLERS ---
+
+function startRealtimeSync() {
+    const url = getFirebaseUrl();
+    if (!url) return;
+
+    if (eventSource) {
+        eventSource.close();
+    }
+
+    try {
+        console.log("Iniciando sincronización en tiempo real mediante SSE...");
+        eventSource = new EventSource(url);
+
+        eventSource.addEventListener("put", (event) => {
+            try {
+                const payload = JSON.parse(event.data);
+                if (payload && payload.path === "/") {
+                    const cloudData = payload.data;
+                    if (cloudData) {
+                        const incomingProducts = cloudData.products || [];
+                        const incomingTransactions = cloudData.transactions || [];
+                        const incomingDebts = cloudData.debts || [];
+                        const incomingDeductions = cloudData.deductions || [];
+
+                        // Comparar con el estado local para evitar re-renderizados innecesarios o sobrescribir cambios en curso
+                        const currentStr = JSON.stringify({ products, transactions, debts, deductions });
+                        const incomingStr = JSON.stringify({
+                            products: incomingProducts,
+                            transactions: incomingTransactions,
+                            debts: incomingDebts,
+                            deductions: incomingDeductions
+                        });
+
+                        if (currentStr !== incomingStr) {
+                            products = incomingProducts;
+                            transactions = incomingTransactions;
+                            debts = incomingDebts;
+                            deductions = incomingDeductions;
+
+                            console.log("Realtime sync: Datos locales actualizados desde Firebase.");
+                            
+                            // Re-renderizar componentes
+                            renderInventory();
+                            renderDebts();
+                            renderReports();
+
+                            // Actualizar indicador de base de datos
+                            dbStatusBadge.textContent = "Base de Datos: Nube 🟢";
+                            dbStatusBadge.style.background = "#f0fdf4";
+                            dbStatusBadge.style.color = "#16a34a";
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error("Error al procesar el mensaje de sincronización:", err);
+            }
+        });
+
+        eventSource.onerror = (err) => {
+            console.warn("Conexión de tiempo real caída temporalmente, reintentando automáticamente...", err);
+        };
+    } catch (err) {
+        console.error("No se pudo establecer la sincronización en tiempo real:", err);
+    }
+}
+
+// PWA: Registrar Service Worker si el protocolo es http/https (contexto seguro)
+if ("serviceWorker" in navigator && (window.location.protocol === "http:" || window.location.protocol === "https:")) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js")
+            .then(reg => console.log("Service Worker registrado con éxito en el ámbito:", reg.scope))
+            .catch(err => console.warn("Fallo al registrar el Service Worker:", err));
+    });
+}
+
+// PWA: Manejar aviso de instalación de la aplicación
+window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (installAppBtn) {
+        installAppBtn.style.display = "inline-block";
+    }
+});
+
+if (installAppBtn) {
+    installAppBtn.addEventListener("click", async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`Resultado de la instalación PWA: ${outcome}`);
+        deferredPrompt = null;
+        installAppBtn.style.display = "none";
+    });
+}
+
 // --- CORE APP CONTROLLER ---
 
 async function initApp() {
     // 1. Sync & Load data (Firebase or LocalStorage fallback)
     await loadData();
+
+    // Iniciar escucha de cambios en tiempo real
+    startRealtimeSync();
 
     // 2. Set default dates
     const today = new Date();

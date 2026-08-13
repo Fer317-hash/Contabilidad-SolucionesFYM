@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Unificado | SOLUCIONES F&M</title>
     <link rel="stylesheet" href="dashboard.css">
+    <link rel="manifest" href="manifest.json">
 </head>
 <body>
 
@@ -96,6 +97,9 @@
                         <p style="font-size: 0.85rem; color: var(--text-secondary);">Inventario, Flujos Financieros y Cuentas por Pagar</p>
                     </div>
                     <div class="header-right" style="display: flex; align-items: center; gap: 8px;">
+                        <button class="btn btn-primary" id="install-app-btn" style="padding: 6px 12px; font-size: 0.78rem; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-color: #f97316; display: none;">
+                            📥 Instalar App
+                        </button>
                         <button class="btn btn-primary" id="export-summary-pdf-btn" style="padding: 6px 12px; font-size: 0.78rem; background: #0f172a; border-color: #0f172a;">
                             📄 PDF General
                         </button>
